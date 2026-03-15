@@ -1,0 +1,193 @@
+VAR client BASE RELATION {
+  id_client int,
+  nom_cli CHAR,
+  prenom_cli CHAR,
+  adresse_cli1 CHAR,
+  adresse_cli2 CHAR,
+  adresse_cli3 CHAR,
+  code_postal_cli CHAR,
+  ville_cli CHAR,
+  telephone_cli CHAR,
+  mail_cli CHAR
+}
+KEY { id_client };
+
+VAR compteur BASE RELATION {
+  pdl_prm CHAR,
+  adresse1 CHAR,
+  adresse2 CHAR,
+  adresse3 CHAR,
+  code_postal CHAR,
+  ville CHAR,
+  date_hiver_ete CHAR,
+  date_ete_hiver CHAR
+}
+KEY { pdl_prm };
+
+VAR posseder BASE RELATION {
+  id_client int,
+  pdl_prm CHAR
+}
+KEY { id_client, pdl_prm };
+
+CONSTRAINT posseder_fk_client
+  posseder { id_client } <= client { id_client };
+
+CONSTRAINT posseder_fk_compteur
+  posseder { pdl_prm } <= compteur { pdl_prm };
+
+VAR contrat BASE RELATION {
+  no_contrat CHAR,
+  date_debut_contrat CHAR,
+  id_client int,
+  pdl_prm CHAR
+}
+KEY { no_contrat };
+
+CONSTRAINT contrat_fk_client
+  contrat { id_client } <= client { id_client };
+
+CONSTRAINT contrat_fk_compteur
+  contrat { pdl_prm } <= compteur { pdl_prm };
+
+VAR date BASE RELATION {
+  date CHAR
+}
+KEY { date };
+
+VAR creneau_quotidien BASE RELATION {
+  heure CHAR
+}
+KEY { heure };
+
+VAR releve BASE RELATION {
+  pdl_prm CHAR,
+  date CHAR,
+  heure CHAR,
+  conso_kwh  RATIONAL
+}
+KEY { pdl_prm, date, heure };
+
+CONSTRAINT releve_fk_compteur
+  releve { pdl_prm } <= compteur { pdl_prm };
+
+CONSTRAINT releve_fk_date
+  releve { date } <= date { date };
+
+CONSTRAINT releve_fk_creneau_quotidien
+  releve { heure } <= creneau_quotidien { heure };
+
+VAR fournisseur BASE RELATION {
+  id_fournisseur CHAR,
+  libelle_fournisseur CHAR,
+  telephone_fournisseur CHAR,
+  mail_fournisseur CHAR
+}
+KEY { id_fournisseur };
+
+VAR formule_tarifaire BASE RELATION {
+  id_formule int,
+  lib_formule CHAR,
+  descriptif_formule CHAR,
+  date_commercialisation CHAR,
+  id_fournisseur CHAR
+}
+KEY { id_formule };
+
+CONSTRAINT formule_tarifaire_fk_fournisseur
+  formule_tarifaire { id_fournisseur } <= fournisseur { id_fournisseur };
+
+VAR periode_conso BASE RELATION {
+  id_periode_conso CHAR,
+  lib_periode_conso CHAR
+}
+KEY { id_periode_conso };
+
+VAR creneau BASE RELATION {
+  no_creneau_hebdo int,
+  jour_hebdo CHAR,
+  heure_debut CHAR,
+  heure_fin CHAR,
+  id_periode_conso CHAR
+}
+KEY { no_creneau_hebdo };
+
+CONSTRAINT creneau_fk_periode_conso
+  creneau { id_periode_conso } <= periode_conso { id_periode_conso };
+
+VAR comprendre BASE RELATION {
+  id_formule int,
+  no_creneau_hebdo int
+}
+KEY { id_formule, no_creneau_hebdo };
+
+CONSTRAINT comprendre_fk_formule_tarifaire
+  comprendre { id_formule } <= formule_tarifaire { id_formule };
+
+CONSTRAINT comprendre_fk_creneau
+  comprendre { no_creneau_hebdo } <= creneau { no_creneau_hebdo };
+
+VAR inclure BASE RELATION {
+  id_formule int,
+  id_periode_conso CHAR
+}
+KEY { id_formule, id_periode_conso };
+
+CONSTRAINT inclure_fk_formule_tarifaire
+  inclure { id_formule } <= formule_tarifaire { id_formule };
+
+CONSTRAINT inclure_fk_periode_conso
+  inclure { id_periode_conso } <= periode_conso { id_periode_conso };
+
+VAR puissance BASE RELATION {
+  val_puissance int
+}
+KEY { val_puissance };
+
+VAR tarif_abonnement BASE RELATION {
+  id_formule int,
+  val_puissance int,
+  prix_abo_ht  RATIONAL,
+  prix_abo_ttc  RATIONAL
+}
+KEY { id_formule, val_puissance };
+
+CONSTRAINT tarif_abonnement_fk_formule_tarifaire
+  tarif_abonnement { id_formule } <= formule_tarifaire { id_formule };
+
+CONSTRAINT tarif_abonnement_fk_puissance
+  tarif_abonnement { val_puissance } <= puissance { val_puissance };
+
+VAR tarif_kwh BASE RELATION {
+  id_formule int,
+  val_puissance int,
+  id_periode_conso CHAR,
+  prix_kwh_ht  RATIONAL,
+  prix_kwh_ttc  RATIONAL
+}
+KEY { id_formule, val_puissance, id_periode_conso };
+
+CONSTRAINT tarif_kwh_fk_formule_tarifaire
+  tarif_kwh { id_formule } <= formule_tarifaire { id_formule };
+
+CONSTRAINT tarif_kwh_fk_puissance
+  tarif_kwh { val_puissance } <= puissance { val_puissance };
+
+CONSTRAINT tarif_kwh_fk_periode_conso
+  tarif_kwh { id_periode_conso } <= periode_conso { id_periode_conso };
+
+VAR souscrire BASE RELATION {
+  no_contrat CHAR,
+  id_formule int,
+  date CHAR
+}
+KEY { no_contrat, date };
+
+CONSTRAINT souscrire_fk_contrat
+  souscrire { no_contrat } <= contrat { no_contrat };
+
+CONSTRAINT souscrire_fk_formule_tarifaire
+  souscrire { id_formule } <= formule_tarifaire { id_formule };
+
+CONSTRAINT souscrire_fk_date
+  souscrire { date } <= date { date };
